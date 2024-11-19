@@ -1,5 +1,5 @@
 {
-    "name": "anthonybrindley/design-pattern-implementor",
+    "name": "anthony-brindley/design-pattern-implementor",
     "description": "A Laravel package designed to speed up functionality implementation using design patterns",
     "autoload": {
         "psr-4": {
