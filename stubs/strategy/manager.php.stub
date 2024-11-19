@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+
+
+class {{ class }} implements {{ strategy_manager_interface }}
+{
+    
+
+    public function __construct(
+        private Is{context}Strategy $strategy
+    )
+    {}
+
+    public function setStrategy(Is{context}Strategy $strategy)
+    {
+        $this->strategy = $strategy;
+    }
+
+    
+}
