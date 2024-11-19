@@ -10,7 +10,6 @@ class DesignPatternImplementorServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package) : void
     {
-        dd('gerererer');
         $package
             ->name('design-pattern-implementor')
             ->hasConfigFile()
