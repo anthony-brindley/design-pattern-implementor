@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} implements {{ StrategyInterface }}
+{
+    public function execute(): void
+    {
+        // Implement strategy logic here
+    }
+}

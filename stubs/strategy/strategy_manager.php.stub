@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} implements {{ ManagerInterface }}
+{
+    protected array $strategies = [];
+
+    public function __construct(array $strategies = [])
+    {
+        $this->strategies = $strategies;
+    }
+
+    public function addStrategy(string $name, {{ StrategyInterface }} $strategy): void
+    {
+        $this->strategies[$name] = $strategy;
+    }
+
+    public function executeStrategy(string $name, ...$params): mixed
+    {
+        if (!isset($this->strategies[$name])) {
+            throw new \InvalidArgumentException("Strategy $name not found.");
+        }
+
+        return $this->strategies[$name]->execute(...$params);
+    }
+    
+}
