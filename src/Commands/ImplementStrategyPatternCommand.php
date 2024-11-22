@@ -3,8 +3,6 @@
 namespace AnthonyBrindley\DesignPatternImplementor\Commands;
 
 use AnthonyBrindley\DesignPatternImplementor\Traits\FileGenerator;
-use AnthonyBrindley\DesignPatternImplementor\Traits\NewFileGenerator;
-use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 
@@ -12,7 +10,7 @@ use function Laravel\Prompts\{text, info, spin};
 
 class ImplementStrategyPatternCommand extends GeneratorCommand
 {
-    use NewFileGenerator;
+    use FileGenerator;
 
     protected $signature = 'implement-pattern:strategy';
     protected $description = 'Generate a strategy pattern implementation';

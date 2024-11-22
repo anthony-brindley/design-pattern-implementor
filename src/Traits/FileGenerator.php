@@ -8,189 +8,111 @@ use Illuminate\Support\Str;
 
 trait FileGenerator
 {
-
     protected array $replacements = [];
     protected array $imports = [];
-
-    public function getSupportedFileExtensions(): array
-    {
-        return ['php', 'jpeg', 'jpg', 'png', 'txt', 'json'];
-    }
 
     public function populateStub(string $stubPath, array $replacements): string
     {
         $stub = File::get($stubPath);
 
+        // Add imports to replacements
+        $imports = $this->generateImports();
+        $replacements['imports'] = $imports;
+
         foreach ($replacements as $search => $replace) {
-            $stub = str_replace('{{ '.$search.' }}', $replace, $stub);
+            $stub = str_replace("{{ $search }}", $replace, $stub);
         }
 
         return $stub;
     }
 
-    public function ensureDirectoryExists(string $path): bool
+    public function generateImports(): string
     {
-        $directory = $this->getDirectoryPath($path);
-
-        if (!$this->checkDirectoryExists($directory)) {
-            return $this->createDirectory($directory);
+        if (empty($this->imports)) {
+            return ''; // No imports to add
         }
 
-        return true;
+        return collect($this->imports)
+            ->map(fn($namespace) => "use $namespace;")
+            ->implode("\n");
     }
 
-    public function getDirectoryPath(string $path): string
+    public function addImport(string $key, string $namespace): void
     {
-        if (Str::startsWith($path, '\\')) {
-            $path = Str::replaceFirst('\\', '', $path);
-        }
-
-        if (Str::contains($path, '\\')) {
-            $path = Str::replace('\\', '/', $path);
-        }
-
-        if (Str::startsWith($path, 'App/')) {
-            $path = Str::replaceFirst('App/', '', $path);
-        } elseif (Str::startsWith($path, 'app/')) {
-            $path = Str::replaceFirst('app/', '', $path);
-        }
-
-        if (Str::endsWith($path, $this->getSupportedFileExtensions())) {
-            $path = dirname($path);
-        }
-
-        return app_path($path);
-    }
-
-    public function checkFileExists(string $path): bool
-    {
-        return File::exists($path);
-    }
-
-    public function checkDirectoryExists(string $directoryPath): bool
-    {
-        return File::isDirectory($directoryPath);
-    }
-
-    public function createDirectory(string $directoryPath)
-    {
-        return File::makeDirectory($directoryPath, 0755, true);
-    }
-
-    public function writeToFile(string $path, string $content): bool|int
-    {
-        return File::put($path, $content);
-    }
-
-    public function getStubsFolderPath(?string $subfolder = null)
-    {
-        $basepath = dirname(__DIR__, 2).'/stubs';
-
-        return ($subfolder) ? $basepath.'/'.$subfolder : $basepath;
-    }
-
-    public function addReplacement(string $key, mixed $value)
-    {
-        $this->replacements[$key] = $value;
-    }
-
-    public function addImport(string $key, string $namespace)
-    {
-        if(!in_array($key, array_keys($this->imports)))
-        {
+        if (!array_key_exists($key, $this->imports)) {
             $this->imports[$key] = $namespace;
         }
     }
 
-    public function createClassFile(string $name, string $namespace, string $directory, string $stubPath): string
+    public function createClassFile(string $className, string $namespace, string $directory, string $stubPath): void
     {
-        $className = $this->formatClassName($name);
-        $path      = $directory."/{$className}.php";
+        $this->ensureDirectoryExists($directory);
 
-        $this->checkFileExists($path);
+        $filePath = "$directory/$className.php";
+        if (File::exists($filePath)) {
+            throw new \Exception("File already exists at: $filePath");
+        }
 
-        $replacements = array_merge([
+        $stub = $this->populateStub($stubPath, array_merge([
             'DummyNamespace' => $namespace,
             'DummyClass'     => $className,
-        ], $this->replacements);
+        ], $this->replacements));
 
-        $stub = $this->populateStub($stubPath, $replacements);
-
-        return $this->writeToFile($path, $stub);
+        $this->writeToFile($filePath, $stub);
     }
 
-    public function returnWriteToFileErrorResponse(?string $customMessage = null, ?int $customCode = null): mixed
+    public function getDirectoryPath(string $path): string
     {
-        $message = $customMessage ?? 'Failed to write to file';
-        $code    = $customCode    ?? 500;
+        // Normalize the path to handle Laravel conventions
+        $normalizedPath = Str::of($path)
+            ->ltrim('\\')
+            ->replace('\\', '/') // Replace backslashes with forward slashes
+            ->replaceFirst('App/', '') // Remove 'App/' prefix
+            ->replaceFirst('app/', ''); // Remove 'app/' prefix
 
-        return (app()->runningInConsole())
-            ? $message
-            : throw new \Exception(message: $message, code: $code);
+        // Check if the path ends with a supported file extension
+        if (Str::endsWith($path, $this->getSupportedFileExtensions())) {
+            $normalizedPath = dirname($normalizedPath);
+        }
+
+        return app_path($normalizedPath);
+    }
+
+    protected function getSupportedFileExtensions(): array
+    {
+        return ['php', 'json'];
+    }
+
+    public function getStubsFolderPath(?string $subfolder = null): string
+    {
+        $basepath = dirname(__DIR__, 2) . '/stubs';
+        return $subfolder ? "$basepath/$subfolder" : $basepath;
+    }
+
+    public function ensureDirectoryExists(string $path): void
+    {
+        if (!File::isDirectory($path)) {
+            File::makeDirectory($path, 0755, true);
+        }
+    }
+
+    public function writeToFile(string $path, string $content): void
+    {
+        File::put($path, $content);
     }
 
     public function formatClassName(string $rawName): string
     {
-        return Str::studly($rawName);
+        return Str::studly($rawName); // Converts strings like "my_class" or "my-class" to "MyClass"
     }
 
-    public function getDestinationPath(string $name): string
+    public function addReplacement(string $key, mixed $value): void
     {
-        return $this->getPath($name);
+        $this->replacements[$key] = $value;
     }
 
-    public function getQualifiedName(string $name): string
+    public function getReplacements(): array
     {
-        return $this->qualifyClass($name);
-    }
-
-    public function getNewName(): string
-    {
-        return $this->getNameInput();
-    }
-
-    public function getProcessedPath(?string $name = null): string
-    {
-        return $this->getDestinationPath($this->getQualifiedName($name ?? $this->getNewName()));
-    }
-
-    protected function replaceContent($contents, $replacements)
-    {
-        $revisedContent = $contents; // loop through replacements
-        foreach ($replacements as $new => $placeholders) {
-            $placeholders = Arr::wrap($placeholders);
-            foreach ($placeholders as $placeholder) {
-                if (Str::startsWith($new, 'use__')) {
-                    $new = Str::replaceFirst('__', ' ', $new);
-                    $new = $new.';';
-                }
-
-                $revisedContent = str_replace($placeholder, $new, $revisedContent);
-            }
-        }
-
-        return $revisedContent;
-    }
-
-    protected function persistFileChanges($filePath, $revisedContent): void
-    {
-        file_put_contents($filePath, $revisedContent);
-    }
-
-    protected function populateImportsToStub(string $stubPath)
-    {
-        $stub = File::get($stubPath);
-
-        $importsString = '';
-
-        foreach($this->imports as $import)
-        {
-            $importsString = $importsString.'\r\n';
-            $importsString = $importsString.'use '.$import.';';
-        }
-
-        $stub = str_replace('{{ imports }}', $importsString, $stub);
-
-        return $stub;
+        return $this->replacements;
     }
 }
