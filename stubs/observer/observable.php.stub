@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} implements {{ ObservableInterface }}
+{
+    private array $observers = [];
+
+    public function attach({{ ObserverInterface }} $observer)
+    {
+        $key = get_class($observer);
+
+        if(!in_array($key, array_keys($this->observers)))
+        {
+            $this->observers[$key] = $observer;
+        }
+    }
+
+    public function detach({{ ObserverInterface }} $observer)
+    {
+        $key = get_class($observer);
+
+        if(in_array($key, array_keys($this->observers)))
+        {
+            unset($this->observers[$key]);
+        }
+    }
+
+    public function notify()
+    {
+        foreach($this->observers as $observer)
+        {
+            $observer->update($this);
+        }
+    }
+}

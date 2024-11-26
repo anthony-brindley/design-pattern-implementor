@@ -2,6 +2,8 @@
 
 namespace AnthonyBrindley\DesignPatternImplementor\Providers;
 
+use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementFactoryPatternCommand;
+use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementObserverPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementStrategyPatternCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -14,7 +16,9 @@ class DesignPatternImplementorServiceProvider extends PackageServiceProvider
             ->name('design-pattern-implementor')
             ->hasConfigFile()
             ->hasCommands([
-                ImplementStrategyPatternCommand::class
+                ImplementStrategyPatternCommand::class,
+                ImplementObserverPatternCommand::class,
+                ImplementFactoryPatternCommand::class
             ]);
 
     }

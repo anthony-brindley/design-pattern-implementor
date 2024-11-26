@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+interface {{ DummyClass }}
+{
+    public function attach({{ ObserverInterface }} $observer);
+    public function detach({{ ObserverInterface }} $observer);
+    public function notify();
+}

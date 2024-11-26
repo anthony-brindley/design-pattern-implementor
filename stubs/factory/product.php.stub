@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} implements {{ IsProductInterface }}
+{
+{{ methods }}
+
+    public function {{ product_action }}()
+    {
+        // fill
+    }    
+}

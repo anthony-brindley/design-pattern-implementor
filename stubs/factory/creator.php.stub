@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }}
+{
+{{ methods }}
+    public function {{ factory_method }}(): {{ IsProductInterface }}
+    {
+        // fill
+    }
+
+    public function execute(): void
+    {
+        $service = $this->{{ factory_method }}();
+        $service->{{ product_action }}();
+    }
+}
