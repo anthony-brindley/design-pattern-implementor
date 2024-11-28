@@ -3,5 +3,7 @@
 return [
     'default_namespace' => 'App\\Domains',
 
-    'interface_folder_name' => 'Contracts'
+    'interface_folder_name' => 'Contracts',
+
+    'adaptors_folder_name' => 'Adaptors'
 ];

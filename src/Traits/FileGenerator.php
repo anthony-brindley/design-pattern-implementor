@@ -246,9 +246,14 @@ trait FileGenerator
 
     public function ensureDirectoryExists(string $path): void
     {
-        if (!File::isDirectory($path)) {
+        if (!$this->checkDirectoryExists($path)) {
             File::makeDirectory($path, 0755, true);
         }
+    }
+
+    public function checkDirectoryExists(string $path)
+    {
+        return File::isDirectory($path);
     }
 
     public function writeToFile(string $path, string $content): void
