@@ -7,5 +7,7 @@ return [
 
     'adaptors_folder_name' => 'Adaptors',
 
-    'decorators_folder_name' => 'Decorators'
+    'decorators_folder_name' => 'Decorators',
+
+    'proxys_folder_name' => 'Proxies'
 ];

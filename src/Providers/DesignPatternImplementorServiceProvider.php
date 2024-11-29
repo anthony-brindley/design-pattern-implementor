@@ -6,6 +6,7 @@ use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementAdaptorPatternCom
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementDecoratorPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementFactoryPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementObserverPatternCommand;
+use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementProxyPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementStrategyPatternCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -22,7 +23,8 @@ class DesignPatternImplementorServiceProvider extends PackageServiceProvider
                 ImplementObserverPatternCommand::class,
                 ImplementFactoryPatternCommand::class,
                 ImplementAdaptorPatternCommand::class,
-                ImplementDecoratorPatternCommand::class
+                ImplementDecoratorPatternCommand::class,
+                ImplementProxyPatternCommand::class
             ]);
 
     }
