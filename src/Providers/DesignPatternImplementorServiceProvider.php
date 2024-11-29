@@ -3,6 +3,7 @@
 namespace AnthonyBrindley\DesignPatternImplementor\Providers;
 
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementAdaptorPatternCommand;
+use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementDecoratorPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementFactoryPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementObserverPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementStrategyPatternCommand;
@@ -20,7 +21,8 @@ class DesignPatternImplementorServiceProvider extends PackageServiceProvider
                 ImplementStrategyPatternCommand::class,
                 ImplementObserverPatternCommand::class,
                 ImplementFactoryPatternCommand::class,
-                ImplementAdaptorPatternCommand::class
+                ImplementAdaptorPatternCommand::class,
+                ImplementDecoratorPatternCommand::class
             ]);
 
     }

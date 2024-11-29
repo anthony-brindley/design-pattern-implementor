@@ -5,5 +5,7 @@ return [
 
     'interface_folder_name' => 'Contracts',
 
-    'adaptors_folder_name' => 'Adaptors'
+    'adaptors_folder_name' => 'Adaptors',
+
+    'decorators_folder_name' => 'Decorators'
 ];

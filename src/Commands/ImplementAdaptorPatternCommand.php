@@ -2,6 +2,7 @@
 
 namespace AnthonyBrindley\DesignPatternImplementor\Commands;
 
+use AnthonyBrindley\DesignPatternImplementor\Commands\BaseImplementorCommand;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -33,39 +34,7 @@ class ImplementAdaptorPatternCommand extends BaseImplementorCommand
                     info("Using verified domain: {$data['domain']}");
                 }
             );
-            // $c = 3;
-
-            // $attemptsMessage = 'attempts';
-            // do {
-            //     $domain = $this->promptExistingDomain();
-            //     $domainPath = $this->getDirectoryPath($domain);
-            //     if(!$this->checkDirectoryExists($domainPath))
-            //     {
-            //         $c--;
-            //         if($c === 0)
-            //         {
-            //             break;     
-            //         } else {
-            //             if($c === 1) $attemptsMessage = Str::singular($attemptsMessage);
-            //         }
-                    
-            //         info("That domain doesn't exist. Please review and try again. ($c $attemptsMessage remaining)");    
-            //     } else {
-            //         info("Domain verified. Moving on...");
-            //         break;
-            //     }
-            // } while($c > 0);
             
-            // if($c === 0)
-            // {
-            //     throw new InvalidArgumentException("Unable to validate the domains provided. Exiting.");
-            // } else {
-            //     $this->updateSetting('baseNamespace', $domain);
-                
-            //     $this->setSetting('baseDirectory', $domainPath);
-                
-            //     $this->handleTargetFolderDetails();
-            // }
         } else {
             // get new domain details
             $domain = $this->promptNewDomain();
@@ -117,14 +86,7 @@ class ImplementAdaptorPatternCommand extends BaseImplementorCommand
         $this->handleTargetFolderDetails();
     }
 
-    protected function getStub(): string
-    {
-        if (!empty($this->fileForGeneration)) {
-            return $this->getStubsFolderPath() . '/' . $this->fileForGeneration . ".php.stub";
-        }
-
-        throw new \RuntimeException('No file specified for generation. Set $fileForGeneration in the command.');
-    }
+    
 
     protected function confirmAddToExistingDomain()
     {

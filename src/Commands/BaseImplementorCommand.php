@@ -32,8 +32,6 @@ abstract class BaseImplementorCommand extends GeneratorCommand
 
     protected function updateSetting(string $key, mixed $value): bool
     {
-        if(!isset($this->settings[$key])) return false;
-
         $this->settings[$key] = $value;
 
         return true;
@@ -50,6 +48,15 @@ abstract class BaseImplementorCommand extends GeneratorCommand
         {
             unset($this->settings[$key]);
         }
+    }
+
+    protected function getStub(): string
+    {
+        if (!empty($this->fileForGeneration)) {
+            return $this->getStubsFolderPath() . '/' . $this->fileForGeneration . ".php.stub";
+        }
+
+        throw new \RuntimeException('No file specified for generation. Set $fileForGeneration in the command.');
     }
 
 }
