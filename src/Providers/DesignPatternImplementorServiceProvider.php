@@ -40,7 +40,6 @@ class DesignPatternImplementorServiceProvider extends PackageServiceProvider
         ImplementStatePatternCommand::class,
         ImplementFacadePatternCommand::class,
         ImplementVisitorPatternCommand::class,
-        PromptsExplorerCommand::class
     ];
 
     public static function getCommandNames(): array
