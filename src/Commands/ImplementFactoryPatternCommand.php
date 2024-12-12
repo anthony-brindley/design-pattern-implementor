@@ -2,198 +2,52 @@
 
 namespace AnthonyBrindley\DesignPatternImplementor\Commands;
 
-use AnthonyBrindley\DesignPatternImplementor\Traits\FileGenerator;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Filesystem\Filesystem;
+use AnthonyBrindley\DesignPatternImplementor\Commands\BaseImplementor;
 use Illuminate\Support\Str;
 
-use function Laravel\Prompts\{text, info, spin};
+use function Laravel\Prompts\{infon};
 
-class ImplementFactoryPatternCommand extends GeneratorCommand
+class ImplementFactoryPatternCommand extends BaseImplementor
 {
-    use FileGenerator;
-
     protected $signature = 'implement-pattern:factory';
-    protected $description = 'Generate a factory pattern implementation';
 
-    protected string $fileForGeneration = '';
-
-    protected array $settings = [];
-
-    public function __construct(Filesystem $files)
-    {
-        parent::__construct($files);
-        $this->setSetting('baseNamespace', config('design-pattern-implementor.default_namespace'));
-        $this->setSetting('interfacesFolderName', config('design-pattern-implementor.interface_folder_name', 'Contracts'));
-    }
-
-    protected function getSetting(string $key)
-    {
-        if(!isset($this->settings[$key])) return null;
-
-        return $this->settings[$key];
-    }
-
-    protected function updateSetting(string $key, mixed $value): bool
-    {
-        if(!isset($this->settings[$key])) return false;
-
-        $this->settings[$key] = $value;
-
-        return true;
-    }
-
-    protected function setSetting(string $key, mixed $value): void
-    {
-        $this->settings[$key] = $value;
-    }
+    protected static string $patternName = 'factory';
 
     public function handle(): void
     {
-        // questions
-        /**
-         * 1. Context
-         * 2. What folder should the ProductFactories live in? (Helps us understand what the classes we are creating are)
-         * 3. Objects returned by the factory should implement what interface?
-         * 4. What method should this interface enforce?
-         * 5. What should the Creator class be called?
-         * 6. What should the creator class's main factory method be called?
-         * 7. What are the possible returned objects from the creator class? (Factory classes)
-         */
+        $this->handleDomainSpecifics();
+        $this->handleContextSpecifics();
+        $this->handleContractsFolderDetails();
 
-        // 1 
-        $context = $this->promptContext();
-        $this->setSetting('context', $context);
-        $this->updateSetting('baseNamespace', $this->getSetting('baseNamespace').'\\' . $context);
+        $this->handleProductFolderDetails();
+        $this->handleInterfaceSpecifics();        
 
-        $baseDirectory = $this->getDirectoryPath($this->getSetting('baseNamespace'));
-        $this->setSetting('baseDirectory', $baseDirectory);
+        $this->handleCreatorClassSpecifics();
+        
+        // CREATE DIRECTORIES
+        $this->createPatternDirectories();
 
-        $interfacesFolderName = $this->getSetting('interfacesFolderName');
-        $this->setSetting('interfacesDirectory', "$baseDirectory/$interfacesFolderName");
+        $this->generateInterfaces();
 
-        $baseNamespace = $this->getSetting('baseNamespace');
-        $this->setSetting('interfacesNamespace', "$baseNamespace\\$interfacesFolderName");
-        $interfacesNamespace = "$baseNamespace\\$interfacesFolderName";
+        $this->generateProductClasses();
 
-        // 2
+        $this->generateCreatorClass();
+    }
+
+    protected function handleProductFolderDetails()
+    {
         $productFolderName = $this->promptProductFolderName();
         $singularProductName = Str::singular($productFolderName);
 
         $this->setSetting('productFolderName', $productFolderName);
         $this->setSetting('productSingular', $singularProductName);
-
-        // 3
-        $productInterface = $this->promptProductInterface($context, $singularProductName);
-        $this->setSetting('productInterfaceName', $productInterface);
-
-        // 4
-        $productInterfaceActionMethod = $this->promptActionMethod();
-        $this->setSetting('productInterfaceActionMethod', $productInterfaceActionMethod);
-
-        // 5
-        $creatorClass = $this->promptCreatorClass($singularProductName);
-        $this->setSetting('creatorClass', $creatorClass);
-
-/**
- * Conventions:
- * 
- * - ask === collate multiple
- * - prompt === get 1
- */
-
-
-        // 6
-        $creatorClassFactoryMethod = $this->promptFactoryMethod();
-        $this->setSetting('creatorClassFactoryMethod', $creatorClassFactoryMethod);
-
-        // 7
-        $productClasses = $this->askProducts($singularProductName);
-        $this->setSetting('productClasses', $productClasses);
-
-
-//         // CREATE DIRECTORIES
-        $this->createPatternDirectories($baseDirectory, $this->getSetting('interfacesDirectory'), $productFolderName);
-
-//         // CREATE INTERFACES
-//         // ProductInterface
-
-        $methodString = $this->generateMethodString($productInterfaceActionMethod);
-        $this->addScopedReplacement($creatorClass, 'product_action', $productInterfaceActionMethod);
-        $this->addScopedReplacement($creatorClass, 'factory_method', $creatorClassFactoryMethod);
-        $this->setSetting('productActionMethod', $methodString);
-
-        $interfaceMethodString = $this->generateMethodString(methodName: $productInterfaceActionMethod, forInterface: true);
-        $this->setSetting('productInterfaceActionMethod', $interfaceMethodString);
-
-
-        $this->generateInterface($productInterface, $interfacesNamespace, $this->getSetting('interfacesDirectory'), $interfaceMethodString);
-        
-        
-        // create creator class
-        $creatorFactoryMethodString = $this->generateMethodString($creatorClassFactoryMethod);
-        $creatorFactoryMethodString = $creatorFactoryMethodString."\n\n".$methodString;
-        $this->generateCreator($creatorClass, $baseNamespace, $baseDirectory, $creatorFactoryMethodString);
-
-        // create products
-        $this->fileForGeneration = 'factory/product';
-        $productNamespace = $baseNamespace.'\\'.$this->getSetting('productFolderName');
-
-        $this->setSetting('productNamespace', $productNamespace);
-
-        $productDirectory = $this->getDirectoryPath($productNamespace);
-        $this->setSetting('productDirectory', $productDirectory);
-
-
-        $this->addReplacement('DummyNamespace', $productNamespace);
-        
-
-        foreach($productClasses as $product)
-        {
-            $this->addReplacement('DummyClass', "{$product}");
-            //$methodString = $this->generateMethodString($productInterfaceActionMethod);
-            $this->addScopedReplacement($product, 'IsProductInterface', $productInterface);
-            $this->addScopedImport($product, 'interface', $interfacesNamespace.'\\'.$productInterface);
-            $this->addScopedReplacement($product, 'product_action', $productInterfaceActionMethod);
-
-            //dd('hererer', $this);
-            $this->createClassFile(
-                "{$product}",
-                $productNamespace,
-                $productDirectory,
-                $this->getStub()
-            );
-        }
-
-
-    }
-
-    protected function getStub(): string
-    {
-        if (!empty($this->fileForGeneration)) {
-            return $this->getStubsFolderPath() . '/' . $this->fileForGeneration . ".php.stub";
-        }
-
-        throw new \RuntimeException('No file specified for generation. Set $fileForGeneration in the command.');
-    }
-
-    protected function promptContext(): string
-    {
-        return $this->formatClassName(
-            $this->promptFor(
-                label: 'What is the functionality context for this implementation?',
-                placeholder: 'e.g PaymentHandling',
-                required: true,
-                hint: 'This will be used as a containing folder name'
-            )
-        );
     }
 
     protected function promptProductFolderName(): string
     {
         return $this->formatClassName(
             $this->promptFor(
-            label: "What folder should the 'products' live in?",
+            label: $this->trans('prompt.products-folder'),
             placeholder: "e.g Products",
             default: "Products",
             required: false
@@ -201,22 +55,52 @@ class ImplementFactoryPatternCommand extends GeneratorCommand
         ));
     }
 
-    protected function promptProductInterface(string $context, string $productName): string
+    protected function handleInterfaceSpecifics()
     {
+        $this->handleProductInterface();
+        
+    }
+
+    protected function handleProductInterface()
+    {
+        $productInterface = $this->promptProductInterface();
+        $this->setSetting('productInterfaceName', $productInterface);
+        $this->handleProductInterfaceActionMethod();
+    }
+
+    protected function promptProductInterface(): string
+    {
+        $context = $this->getSetting('context');
+        $productName = $this->getSetting('productSingular');
         $defaultInterfaceClassName = "Is{$context}{$productName}";
 
         return $this->promptForClassName(
-            label: "What interface should the products of the $context factory return?",
+            label: $this->trans('prompt.product-interface', ['context' => $context]),
             placeholder: "e.g $defaultInterfaceClassName",
             default:  $defaultInterfaceClassName,
             required: true
         );
     }
 
+    protected function handleProductInterfaceActionMethod()
+    {
+        $productInterfaceActionMethod = $this->promptActionMethod();
+        $this->setSetting('productInterfaceActionMethod', $productInterfaceActionMethod);
+
+        $this->interfaceMethods = [];
+        $this->interfaceMethods[] = $productInterfaceActionMethod;
+
+        $interfaceMethodString = $this->generateInterfaceMethods();
+        $this->setSetting('productActionInterfaceMethodString', $interfaceMethodString);
+
+        $methodString = $this->generateMethodString($productInterfaceActionMethod);
+        $this->setSetting('productActionMethodString', $methodString);
+    }
+
     protected function promptActionMethod()
     {
         $context = $this->getSetting('context');
-        $label = "What action method should the products of the $context factory have?";
+        $label = $this->trans('prompt.action-method', ['context' => $context]);
         $default = "handle";
 
         return $this->promptForCamel(
@@ -227,10 +111,37 @@ class ImplementFactoryPatternCommand extends GeneratorCommand
         );
     }
 
+    protected function handleCreatorClassSpecifics()
+    {
+        $singularProductName = $this->getSetting('productSingular');
+        $creatorClass = $this->promptCreatorClass($singularProductName);
+        $this->setSetting('creatorClass', $creatorClass);
+
+        $this->handleCreatorFactoryMethod();
+
+        $this->addScopedReplacement($creatorClass, 'product_action', $this->getSetting('productActionMethodString'));
+        $this->addScopedReplacement($creatorClass, 'factory_method', $this->getSetting('creatorClassFactoryMethodString'));
+    }
+
+    protected function handleCreatorFactoryMethod()
+    {
+        $creatorClassFactoryMethod = $this->promptFactoryMethod();
+        $this->setSetting('creatorClassFactoryMethod', $creatorClassFactoryMethod);
+
+        $this->interfaceMethods = [];
+        $this->interfaceMethods[] = $creatorClassFactoryMethod;
+
+        $interfaceMethodString = $this->generateInterfaceMethods();
+        $this->setSetting('creatorClassFactoryInterfaceMethodString', $interfaceMethodString);
+
+        $methodString = $this->generateMethodString($creatorClassFactoryMethod);
+        $this->setSetting('creatorClassFactoryMethodString', $methodString);
+    }
+
     protected function promptFactoryMethod()
     {
         $context = $this->getSetting('context');
-        $label = "What factory method should the factories of the $context have?";
+        $label = $this->trans('prompt.factory-method', ['context' => $context]);
         $default = "get";
 
         return $this->promptForCamel(
@@ -258,7 +169,7 @@ class ImplementFactoryPatternCommand extends GeneratorCommand
         $default = "{$productName}Creator";
 
         return $this->promptForClassName(
-            label: "What should the main 'Creator' class be called?",
+            label: $this->trans('prompt.creator-class'),
             placeholder: "e.g $default",
             default: $default,
             required: false
@@ -268,7 +179,7 @@ class ImplementFactoryPatternCommand extends GeneratorCommand
     protected function askProducts(string $singularProductName): array
     {
         $products = $this->captureAnswers(
-            label: "Create a new {$singularProductName} class called: (leave blank to skip)",
+            label: $this->trans('prompt.product-class', ['singularProductName' => $singularProductName]),
             placeholder: "e.g Base{$singularProductName}",
             required: false,
             limit: null,
@@ -277,54 +188,88 @@ class ImplementFactoryPatternCommand extends GeneratorCommand
         return $products;
     }
 
-    protected function createPatternDirectories(string $baseDirectory, string $interfacesDirectory, string $productFolderName): void
+    protected function createPatternDirectories(): void
     {
         info('Creating directories for the factory pattern...');
 
-        $this->ensureDirectoryExists($baseDirectory);
-        $this->ensureDirectoryExists($interfacesDirectory);
-        $this->ensureDirectoryExists("$baseDirectory/$productFolderName");
+        $baseNamespace = $this->getSetting('baseNamespace');
+        $basePath = $this->getDirectoryPath($baseNamespace); 
+
+        $this->ensureDirectoryExists($basePath);
+        $this->ensureDirectoryExists($this->getSetting('interfacesFolderPath'));
+
+        $productNamespace = $basePath.'/'.$this->getSetting('productFolderName');
+        $this->setSetting('productFolderNamespace', $productNamespace);
+        $this->ensureDirectoryExists($this->getDirectoryPath($productNamespace));
     }
 
-    protected function generateInterface(string $name, string $namespace, string $directory, string $methodString = '', string $stubName = 'general/interface'): void
+    protected function generateInterfaces()
     {
-        info('Generating interface file: '.$name);
+        $this->generateProductInterface();
+    }
 
-        $this->fileForGeneration = $stubName;
+    protected function generateProductInterface(): void
+    {
+        $interfaceName = $this->getSetting('productInterfaceName');
+        $namespace = $this->getSetting('interfacesFolderNamespace');
 
-        $this->addScopedReplacement($name, 'methods', $methodString);
+        $interfaceNamespace = $namespace.'\\'.$interfaceName;
+        $this->setSetting('productInterfaceNamespace', $interfaceNamespace);
+
+        $this->fileForGeneration('general/interface');
+
+        info('Generating interface file: '.$interfaceName);
+
+        $this->addScopedReplacement($interfaceName, 'methods', $this->getSetting('productActionInterfaceMethodString'));
 
         $this->createClassFile(
-            $name,
+            $interfaceName,
             $namespace,
-            $directory,
             $this->getStub()
         );  
+
+        
     }
-    protected function generateCreator(string $name, string $namespace, string $baseDirectory, string $methodString): void
+
+    protected function generateProductClasses()
     {
+        $this->fileForGeneration = 'factory/product';
+  
+        $productClasses = $this->askProducts($this->getSetting('productSingular'));
+        
+        foreach($productClasses as $product)
+        {
+            $className = $this->formatClassName($product);
+
+            info('Generating the '.$className.' class...');
+
+            $this->addScopedDependency($className, $this->getSetting('productInterfaceNamespace'), 'IsProductInterface');
+
+            $this->addScopedReplacement($className, 'product_action', $this->getSetting('productActionMethodString'));
+
+            $this->createClassFile(
+                $className,
+                $this->getSetting('productFolderNamespace'),
+                $this->getStub()
+            );
+        }
+    }
+
+    protected function generateCreator(): void
+    {
+        $className = $this->getSetting('creatorClass');
         info('Generating the creator class...');
 
         $this->fileForGeneration = 'factory/creator';
 
-        // Add replacements for the manager class
-        $this->addReplacement('DummyNamespace', $namespace);
-        $this->addReplacement('DummyClass', "{$name}");
-
-        $productInterfaceName = $this->getSetting('productInterfaceName');
-        $productInterfaceNamespace = $this->getSetting('interfacesNamespace').'\\'.$productInterfaceName;
-
-        $this->addScopedReplacement($name, 'IsProductInterface', $productInterfaceName);
-        $this->addScopedImport($name, 'interfaces', $productInterfaceNamespace);
-
-
-        // Add the manager interface import
+        $this->addScopedDependency($className, $this->getSetting('productInterfaceNamespace'), 'IsProductInterface');
 
         $this->createClassFile(
-            "{$name}",
-            $namespace,
-            $baseDirectory,
+            $className,
+            $this->getSetting('baseNamespace'),
             $this->getStub()
         );
+
+        info($this->trans('success'));
     }
 }

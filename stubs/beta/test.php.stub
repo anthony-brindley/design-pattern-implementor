@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} extends {{ ReferencedClass }} implements {{ ReferencedInterface }}
+{
+    {{ methods }}
+}

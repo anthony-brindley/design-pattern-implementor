@@ -88,21 +88,21 @@ trait FileGenerator
             ->implode("\n");
     }
 
-    public function generateMethodString(string $methodName, ?string $returnType = null, bool $forInterface = false): string
-    {
-        $returnType = (empty($returnType)) ? '' : ': '.$returnType;
-        $methodName = Str::camel($methodName);
+    // public function generateMethodString(string $methodName, ?string $returnType = null, bool $forInterface = false): string
+    // {
+    //     $returnType = (empty($returnType)) ? '' : ': '.$returnType;
+    //     $methodName = Str::camel($methodName);
 
-        $base = "\tpublic function $methodName(){$returnType}";
+    //     $base = "\tpublic function $methodName(){$returnType}";
 
-        if(true === $forInterface)
-        {
-            $string = $base.";";
-            return $string;
-        } 
+    //     if(true === $forInterface)
+    //     {
+    //         $string = $base.";";
+    //         return $string;
+    //     } 
 
-        return $base."\n\t{\n\t\t//populate this\n\t}\n\n";        
-    }
+    //     return $base."\n\t{\n\t\t//populate this\n\t}\n\n";        
+    // }
 
     public function createClassFile(string $className, string $namespace, string $directory, string $stubPath): void
     {

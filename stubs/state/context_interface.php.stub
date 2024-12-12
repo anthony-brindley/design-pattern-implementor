@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+interface {{ DummyClass }}
+{
+    public function transitionTo({{ StateInterfaceName }} ${{ StateClassSingular }});
+}

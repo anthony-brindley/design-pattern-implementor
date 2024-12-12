@@ -12,14 +12,15 @@ use function Laravel\Prompts\{confirm, text, info, spin};
 
 trait PromptsUsers
 {
-    protected function promptFor(string $label, string $placeholder = '', string $default = '', string $hint = '', bool $required = false): string
+    protected function promptFor(string $label, string $placeholder = '', string $default = '', string $hint = '', bool $required = false, mixed $validate = null): string
     {
         return text(
                 label: $label,
                 placeholder: $placeholder,
                 required: $required,
                 default: $default,
-                hint: $hint
+                hint: $hint,
+                validate: $validate
         );
     }
 
@@ -48,7 +49,7 @@ trait PromptsUsers
 
         $answers = [];
 
-        $placeholder = (!empty($placeholder)) ? "e.g. {$placeholder}" : null;
+        $placeholder = (!empty($placeholder)) ? "e.g. {$placeholder}" : '';
 
         while($answer = $this->promptFor(
             label: $label,

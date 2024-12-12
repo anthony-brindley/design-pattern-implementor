@@ -4,6 +4,14 @@
     "autoload": {
         "psr-4": {
             "AnthonyBrindley\\DesignPatternImplementor\\": "src/"
+        },
+        "files": [
+            "src/Helpers/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AnthonyBrindley\\DesignPatternImplementor\\Tests\\": "tests/"
         }
     },
     "authors": [
@@ -24,6 +32,20 @@
             ]
         }
     },
+    "scripts": {
+        "test": [
+            "@php ./vendor/bin/pest $*"
+        ]
+    },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "pestphp/pest": "^3.6",
+        "orchestra/testbench": "^9.7"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }

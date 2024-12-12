@@ -2,139 +2,129 @@
 
 namespace AnthonyBrindley\DesignPatternImplementor\Commands;
 
-use AnthonyBrindley\DesignPatternImplementor\Traits\FileGenerator;
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Support\Str;
+use AnthonyBrindley\DesignPatternImplementor\Commands\BaseImplementor;
 
 use function Laravel\Prompts\{text, info, spin};
 
-class ImplementStrategyPatternCommand extends GeneratorCommand
+class ImplementStrategyPatternCommand extends BaseImplementor
 {
-    use FileGenerator;
-
     protected $signature = 'implement-pattern:strategy';
-    protected $description = 'Generate a strategy pattern implementation';
 
-    protected string $fileForGeneration = '';
+    protected static string $patternName = 'strategy';
 
     public function handle(): void
     {
-        $context = $this->promptContext();
-        $baseNamespace = config('design-pattern-implementor.default_namespace') . '\\' . $context;
-        $baseDirectory = $this->getDirectoryPath($baseNamespace);
-
-        $interfacesFolderName = config('design-pattern-implementor.interface_folder_name', 'Contracts');
-        $interfacesDirectory = "$baseDirectory/$interfacesFolderName";
-        $interfacesNamespace = "$baseNamespace\\$interfacesFolderName";
-
-        $strategyInterface = "Is{$context}Strategy";
-        $managerInterface = "Is{$context}Manager";
-
-        $this->createPatternDirectories($baseDirectory, $interfacesDirectory);
-        $this->generateInterfaces($context, $interfacesNamespace, $interfacesDirectory);
         
-        $strategyReplacements = [
-            'StrategyInterface' => $strategyInterface
-        ];
-        $strategyImports = [
-            'StrategyInterface' => $interfacesNamespace."\\{$strategyInterface}"
-        ];
-        
-        $this->generateStrategies($context, $baseNamespace,  $strategyReplacements, $strategyImports);
-        
-        $managerReplacements = [
-            'StrategyInterface' => $strategyInterface,
-            'ManagerInterface' => $managerInterface
-        ];
-        $managerImports = [
-            'StrategyInterface' => $interfacesNamespace."\\{$strategyInterface}",
-            'ManagerInterface' => $interfacesNamespace."\\{$managerInterface}"
-        ];
+        $this->handleDomainSpecifics();
+        $this->handleContextSpecifics();
 
-        $this->generateManager($context, $baseNamespace, $baseDirectory, $managerReplacements, $managerImports);
+        $this->handleFolderNames();
+
+        $this->createPatternDirectories();
+
+        $this->handleInterfaceSpecifics();
+
+        $this->generateStrategies();
+        
+        $this->generateManager();
     }
 
-    protected function getStub(): string
-    {
-        if (!empty($this->fileForGeneration)) {
-            return $this->getStubsFolderPath() . '/' . $this->fileForGeneration . ".php.stub";
-        }
+    
 
-        throw new \RuntimeException('No file specified for generation. Set $fileForGeneration in the command.');
+    protected function handleFolderNames()
+    {
+        $this->handleContractsFolderDetails();
+        $this->handleStrategyFolderDetails();
+
     }
 
-    protected function promptContext(): string
+    protected function handleStrategyFolderDetails()
     {
-        return $this->formatClassName(
-            text(
-                label: 'What is the functionality context for this implementation?',
-                placeholder: 'e.g PaymentHandling',
-                required: true,
-                hint: 'This will be used as a containing folder name'
-            )
+        $confirmedFolderName = $this->promptForClassName(
+            label: $this->trans('prompt.strategy-folder'),
+            default: "Strategies",
+            required: true
         );
+
+        $this->setSetting('strategyFolderName', $confirmedFolderName);
+
+        $proposedFolderNamespace = $this->getSetting('baseNamespace').'\\'.$confirmedFolderName;
+        $proposedFolderPath = $this->getDirectoryPath($proposedFolderNamespace);
+
+        $this->setSetting('strategyFolderNamespace', $proposedFolderNamespace);
+        $this->setSetting('strategyFolderPath', $proposedFolderPath);
     }
-    protected function createPatternDirectories(string $baseDirectory, string $interfacesDirectory): void
+
+    protected function handleInterfaceSpecifics()
+    {
+
+        info('Generating interface files...');
+
+        $this->generateIsStrategyInterface();
+        $this->generateStrategyManagerInterface();
+    }
+
+    protected function generateIsStrategyInterface()
+    {
+        $context = $this->getSetting('context');
+        $className = "Is{$context}Strategy";
+
+        $this->fileForGeneration = 'strategy/is_strategy';
+
+        $this->createClassFile(
+            $className,
+            $this->getSetting('interfacesFolderNamespace'),
+            $this->getStub()
+        );
+
+        $this->setSetting('isStrategyInterfaceNamespace', $this->getSetting('interfacesFolderNamespace').'\\'.$className);
+    }
+
+    protected function generateStrategyManagerInterface()
+    {
+        $context = $this->getSetting('context');
+        $className = "Is{$context}Manager";
+        $this->fileForGeneration = 'strategy/is_strategy_manager';
+
+        $this->createClassFile(
+            $className,
+            $this->getSetting('interfacesFolderNamespace'),
+            $this->getStub()
+        );
+
+        $this->setSetting('strategyManagerInterfaceNamespace', $this->getSetting('interfacesFolderNamespace').'\\'.$className);
+    }
+
+    protected function createPatternDirectories(): void
     {
         info('Creating directories for the strategy pattern...');
 
-        $this->ensureDirectoryExists($baseDirectory);
-        $this->ensureDirectoryExists($interfacesDirectory);
-        $this->ensureDirectoryExists("$baseDirectory/Strategies");
+        $this->ensureDirectoryExists($this->getDirectoryPath($this->getSetting('baseNamespace')));
+        $this->ensureDirectoryExists($this->getSetting('interfacesFolderPath'));
+        $this->ensureDirectoryExists($this->getSetting('strategyFolderPath'));
     }
 
-    protected function generateInterfaces(string $context, string $namespace, string $directory): void
+    
+
+    protected function generateStrategies(): void
     {
-        info('Generating interface files...');
-
-        $interfaces = [
-            "Is{$context}Manager" => 'is_strategy_manager',
-            "Is{$context}Strategy" => 'is_strategy',
-        ];
-
-        foreach ($interfaces as $className => $stub) {
-            $this->fileForGeneration = "strategy/$stub";
-            $this->createClassFile(
-                $className,
-                $namespace,
-                $directory,
-                $this->getStub()
-            );
-            
-        }
-    }
-
-    protected function generateStrategies(string $context, string $namespace, array $replacements = [], array $imports = []): void
-    {
-        info('Generating strategy classes...');
         $strategies = $this->askStrategies();
 
-        $strategiesDirectory = $this->getDirectoryPath("$namespace/Strategies"); // Normalize path for directory creation
+        if(empty($strategies)) return;
+
+        info('Generating strategy classes...');
+        
+        $this->fileForGeneration = 'strategy/strategy';
+
 
         foreach ($strategies as $strategy) {
-            $this->fileForGeneration = 'strategy/strategy';
+            $className = $this->formatClassName($strategy);
 
-            // Normalize namespace for imports
-           // $formattedInterfaceNamespace = str_replace('/', '\\', $interfacesNamespace);
-
-            // Add replacements for the strategy class
-            $this->addReplacement('DummyNamespace', str_replace('/', '\\', "$namespace/Strategies"));
-            $this->addReplacement('DummyClass', $this->formatClassName($strategy));
-
-            foreach($replacements as $k => $v)
-            {
-                $this->addReplacement($k, $v);
-            }
-
-            foreach($imports as $k => $v)
-            {
-                $this->addImport($k, $v);    
-            }
+            $this->addScopedDependency($className, $this->getSetting('isStrategyInterfaceNamespace'), 'StrategyInterface');
 
             $this->createClassFile(
-                $this->formatClassName($strategy),
-                str_replace('/', '\\', "$namespace\\Strategies"), // Normalize namespace for file generation
-                $strategiesDirectory,
+                $className,
+                $this->getSetting('strategyFolderNamespace'),
                 $this->getStub()
             );
         }
@@ -142,54 +132,31 @@ class ImplementStrategyPatternCommand extends GeneratorCommand
 
     protected function askStrategies(): array
     {
-        $strategies = [];
-        
-        while($strategy = $this->formatClassName(text(
+        return $this->captureAnswers(
             label: 'Enter a strategy name (or leave blank to stop):',
             placeholder: 'e.g CreditCardPayment',
             required: false
-        )))
-        {
-            if(!in_array($strategy, $strategies)) $strategies[] = $strategy;
-            else {
-                info('Already a strategy with this name due for creation, please try again...');
-            }
-        };
-
-        return $strategies;
+        );
     }
 
-    protected function generateManager(string $context, string $namespace, string $baseDirectory, array $replacements = [], array $imports = []): void
+    protected function generateManager(): void
     {
         info('Generating the strategy manager class...');
 
         $this->fileForGeneration = 'strategy/strategy_manager';
 
-        // Normalize namespace for imports
-       // $formattedInterfaceNamespace = str_replace('/', '\\', $interfacesNamespace);
+        $context = $this->getSetting('context');
 
-        // Add replacements for the manager class
-        $this->addReplacement('DummyNamespace', $namespace);
-        $this->addReplacement('DummyClass', "{$context}Manager");
-        //$this->addReplacement('DummyInterface', $managerInterface);
+        $className = "{$context}Manager";
 
-        foreach($replacements as $k => $v)
-        {
-            $this->addReplacement($k, $v);
-        }
+        $this->addScopedDependency($className, $this->getSetting('strategyManagerInterfaceNamespace'), 'ManagerInterface');
 
-        foreach($imports as $k => $v)
-        {
-            $this->addImport($k, $v);    
-        }
-
-        // Add the manager interface import
+        $this->addScopedDependency($className, $this->getSetting('isStrategyInterfaceNamespace'), 'StrategyInterface');
 
         $this->createClassFile(
-            "{$context}Manager",
-            $namespace,
-            $baseDirectory,
-            $this->getStub()
+            className: $className,
+            namespace: $this->getSetting('baseNamespace'),
+            stubPath: $this->getStub()
         );
     }
 }

@@ -9,5 +9,7 @@ return [
 
     'decorators_folder_name' => 'Decorators',
 
-    'proxys_folder_name' => 'Proxies'
+    'proxys_folder_name' => 'Proxies',
+    
+    'state_folder_name' => 'States'
 ];
