@@ -3,6 +3,7 @@
 namespace AnthonyBrindley\DesignPatternImplementor\Providers;
 
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementAdaptorPatternCommand;
+use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementCommandPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementDecoratorPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementFacadePatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementFactoryPatternCommand;
@@ -12,10 +13,16 @@ use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementStatePatternComma
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementStrategyPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\ImplementVisitorPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Commands\PromptsExplorerCommand;
+use AnthonyBrindley\DesignPatternImplementor\Commands\UnfinishedImplementMediatorPatternCommand;
 use AnthonyBrindley\DesignPatternImplementor\Services\MethodGenerator\ClassGeneratorService;
 use AnthonyBrindley\DesignPatternImplementor\Services\MethodGenerator\MethodGeneratorService;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+
+
+
+
+
 
 class DesignPatternImplementorServiceProvider extends PackageServiceProvider
 {
@@ -39,7 +46,9 @@ class DesignPatternImplementorServiceProvider extends PackageServiceProvider
         ImplementProxyPatternCommand::class,
         ImplementStatePatternCommand::class,
         ImplementFacadePatternCommand::class,
-        ImplementVisitorPatternCommand::class,
+        //ImplementVisitorPatternCommand::class,
+        UnfinishedImplementMediatorPatternCommand::class,
+        ImplementCommandPatternCommand::class,
     ];
 
     public static function getCommandNames(): array

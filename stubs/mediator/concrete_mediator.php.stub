@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} implements {{ isMediatorInterfaceName }}
+{
+    public function {{ mediate_action }}({{ isMediatedInterfaceName }} $sender, string $event): void
+    {
+        // TODO: populate this
+    }
+}

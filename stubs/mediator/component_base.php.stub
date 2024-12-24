@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} implements {{ isMediatedInterfaceName }}
+{
+    public function __construct(
+        protected {{ isMediatorInterfaceName }} $mediator
+    )
+    {}
+
+    public function setMediator({{ isMediatorInterfaceName }} $mediator): void
+    {
+        $this->mediator = $mediator;
+    }
+}

@@ -1,0 +1,17 @@
+<?php
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} extends {{ baseCommandClassName }}
+{
+    public function __construct(
+        protected {{ isReceiverInterfaceName }} $receiver,
+        // any class-specific properties can be defined here
+    ){
+        parent::__construct($receiver);
+    }
+    
+{{ methods }}
+}

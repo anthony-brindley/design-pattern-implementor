@@ -4,7 +4,7 @@ namespace AnthonyBrindley\DesignPatternImplementor\Commands;
 
 use Illuminate\Support\Str;
 
-class ImplementVisitorPatternCommand extends BaseImplementor
+class UnfinishedImplementVisitorPatternCommand extends BaseImplementor
 {
     protected $signature = 'implement-pattern:visitor';
 

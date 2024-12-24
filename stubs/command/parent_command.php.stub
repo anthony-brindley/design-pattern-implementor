@@ -1,0 +1,14 @@
+<?php
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} implements {{ isCommandInterfaceName }}
+{
+    public function __construct(
+        protected {{ isReceiverInterfaceName }} $receiver
+    ){}
+    
+{{ methods }}
+}

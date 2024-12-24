@@ -1,0 +1,10 @@
+<?php
+
+namespace {{ DummyNamespace }};
+
+{{ imports }}
+
+class {{ DummyClass }} implements {{ isInvokerInterfaceName }}
+{
+    // methods can require command classes as parameters
+}
